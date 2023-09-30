@@ -21,6 +21,9 @@ class Appareil
     #[ORM\OneToMany(mappedBy: 'appareilId', targetEntity: Consomation::class)]
     private Collection $consomations;
 
+    #[ORM\ManyToOne(inversedBy: 'appareils')]
+    private ?Client $client = null;
+
     public function __construct()
     {
         $this->consomations = new ArrayCollection();
@@ -69,6 +72,18 @@ class Appareil
                 $consomation->setAppareilId(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getClient(): ?Client
+    {
+        return $this->client;
+    }
+
+    public function setClient(?Client $client): static
+    {
+        $this->client = $client;
 
         return $this;
     }

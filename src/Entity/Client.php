@@ -24,9 +24,13 @@ class Client
     #[ORM\OneToMany(mappedBy: 'clientId', targetEntity: Consomation::class)]
     private Collection $consomations;
 
+    #[ORM\OneToMany(mappedBy: 'client', targetEntity: Appareil::class)]
+    private Collection $appareils;
+
     public function __construct()
     {
         $this->consomations = new ArrayCollection();
+        $this->appareils = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -82,6 +86,36 @@ class Client
             // set the owning side to null (unless already changed)
             if ($consomation->getClientId() === $this) {
                 $consomation->setClientId(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Appareil>
+     */
+    public function getAppareils(): Collection
+    {
+        return $this->appareils;
+    }
+
+    public function addAppareil(Appareil $appareil): static
+    {
+        if (!$this->appareils->contains($appareil)) {
+            $this->appareils->add($appareil);
+            $appareil->setClient($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAppareil(Appareil $appareil): static
+    {
+        if ($this->appareils->removeElement($appareil)) {
+            // set the owning side to null (unless already changed)
+            if ($appareil->getClient() === $this) {
+                $appareil->setClient(null);
             }
         }
 

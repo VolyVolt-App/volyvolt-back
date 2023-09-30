@@ -10,11 +10,15 @@
         "doctrine/doctrine-bundle": "^2.10",
         "doctrine/doctrine-migrations-bundle": "^3.2",
         "doctrine/orm": "^2.16",
+        "lexik/jwt-authentication-bundle": "^2.18",
+        "nelmio/cors-bundle": "^2.3",
+        "nesbot/carbon": "^2.71",
         "symfony/console": "6.3.*",
         "symfony/dotenv": "6.3.*",
         "symfony/flex": "^2",
         "symfony/framework-bundle": "6.3.*",
         "symfony/runtime": "6.3.*",
+        "symfony/security-bundle": "6.3.*",
         "symfony/yaml": "6.3.*"
     },
     "require-dev": {
@@ -53,7 +57,8 @@
             "assets:install %PUBLIC_DIR%": "symfony-cmd"
         },
         "post-install-cmd": [
-            "@auto-scripts"
+            "@auto-scripts",
+            "php bin/console lexik:jwt:generate-keypair"
         ],
         "post-update-cmd": [
             "@auto-scripts"
