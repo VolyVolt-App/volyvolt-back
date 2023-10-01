@@ -82,7 +82,7 @@ class UserController extends AbstractController
         ]);
     }
 
-    #[Route('/allClient', name: 'app_client', methods: 'POST')]
+    #[Route('/allClient', name: 'app_get_all_client', methods: 'POST')]
     public function getAllClient(Request $request): JsonResponse
     {
         $_clients= $this->clientRepository->findAll();
@@ -139,7 +139,7 @@ class UserController extends AbstractController
         ]);
     }
 
-    #[Route('/allappareil', name: 'app_client', methods: 'POST')]
+    #[Route('/allappareil', name: 'app_all_app', methods: 'POST')]
     public function getAllAppareil(Request $request): JsonResponse
     {
         $_appareil= $this->appareilRepository->findAll();
