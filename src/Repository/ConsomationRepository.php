@@ -21,6 +21,25 @@ class ConsomationRepository extends ServiceEntityRepository
         parent::__construct($registry, Consomation::class);
     }
 
+    public function findAllConsomationByStartAndEndOfWeekByClient($id, $startWeek, $endWeek){
+         $qb=$this->createQueryBuilder('c');
+         $qb->where(
+            $qb->expr()->andX(
+                $qb->expr()->eq('c.clientId', ':clientId'),
+                $qb->expr()->between('c.date',':startWeek',':endWeek'),
+                ))
+                ->setParameters(
+                [
+                'clientId' => $id,
+                'startWeek' => $startWeek,
+                'endWeek' => $endWeek
+                ]
+            )
+                    ->getQuery()
+                    ->getResult()
+                ;
+    }
+
 //    /**
 //     * @return Consomation[] Returns an array of Consomation objects
 //     */

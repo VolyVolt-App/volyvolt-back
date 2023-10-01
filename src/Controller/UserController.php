@@ -82,6 +82,22 @@ class UserController extends AbstractController
         ]);
     }
 
+    #[Route('/allClient', name: 'app_client', methods: 'POST')]
+    public function getAllClient(Request $request): JsonResponse
+    {
+        $_clients= $this->clientRepository->findAll();
+
+        $client = array();
+        foreach ($_clients as $key => $clients){
+            $client[$key]['id'] = $clients->getId();
+            $client[$key]['nom'] = $clients->getNom();
+            $client[$key]['clientId'] = $clients->getClientId();
+            
+        }
+
+        return $this->json($client);
+    }
+
     #[Route('/appareil', name: 'app_appareil', methods: 'POST')]
     public function newAppareil(): JsonResponse
     {
@@ -121,6 +137,30 @@ class UserController extends AbstractController
             'appareilId' => $appareil->getAppareilId(),
             //'nom' => $client->getNom(),
         ]);
+    }
+
+    #[Route('/allappareil', name: 'app_client', methods: 'POST')]
+    public function getAllAppareil(Request $request): JsonResponse
+    {
+        $_appareil= $this->appareilRepository->findAll();
+
+        $appareil = array();
+        foreach ($_appareil as $key => $app){
+            $appareil[$key]['id'] = $app->getId();
+            $appareil[$key]['appareilID'] = $app->getAppareilId();
+
+            if($app->getClient()){
+                
+            $appareil[$key]['clientID'] = $app->getClient()->getClientId();
+            } else {
+                
+            $appareil[$key]['clientID'] = 'pas encore utilisé';
+            }
+            //$appareil[$key]['clientId'] = $app->getClientId();
+            
+        }
+
+        return $this->json($appareil);
     }
 
     #[Route('/matchapptoclient', name: 'app_match_appareil_to_client', methods: 'POST')]
