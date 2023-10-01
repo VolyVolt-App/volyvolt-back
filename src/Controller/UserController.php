@@ -232,5 +232,4 @@ class UserController extends AbstractController
         ]);
     }
 
-
 }
