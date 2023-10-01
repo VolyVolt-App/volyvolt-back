@@ -271,17 +271,18 @@ class ConsomationController extends AbstractController
                     }
                 fclose($fh);
 
-                dump($data);
+               // dump($data);
 
                 $dataClient = explode(';',$data[0]);
 
+               // dd($dataClient);
                 //getclientID
                 $client = $this->clientRepository->findOneByClientId($dataClient);
-
+                  //  dd($client);
                 //getAppareilID
                 $dataAppareil= explode(';',$data[2]); 
                 $appareil = $this->appareilRepository->findOneByAppareilId($dataAppareil[0]);
-
+               // dd($appareil);
                 //send two
 
     //new consomation
