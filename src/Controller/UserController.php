@@ -47,6 +47,9 @@ class UserController extends AbstractController
         /* nom */
         $client = new Client();
         $client->setNom($request->request->get('nom'));
+        $client->setCin($request->request->get('cin'));
+        $client->setAddress($request->request->get('address'));
+        $client->setNombrePerson($request->request->get('nombrePerson'));
 
         $_allClients=$this->clientRepository->findAll();
         $allClientId= array();
@@ -82,18 +85,48 @@ class UserController extends AbstractController
         ]);
     }
 
-    #[Route('/allClient', name: 'app_get_all_client', methods: 'POST')]
+    #[Route('/allClient', name: 'app_get_all_client', methods: 'GET')]
     public function getAllClient(Request $request): JsonResponse
     {
         $_clients= $this->clientRepository->findAll();
 
         $client = array();
+
         foreach ($_clients as $key => $clients){
             $client[$key]['id'] = $clients->getId();
             $client[$key]['nom'] = $clients->getNom();
             $client[$key]['clientId'] = $clients->getClientId();
+            $client[$key]['cin'] =$clients->getCin();
+            $client[$key]['address'] = $clients->getAddress();
+            $client[$key]['usedDevices'] = $clients->getUsedDevices();
+            $client[$key]['nombrePerson'] = $clients->getNombrePerson();
+            $client[$key]['uDevices'] = $clients->getUDevices();
+            $client[$key]['lastConsomation'] = '50';
             
         }
+
+        return $this->json($client);
+    }
+
+    #[Route('/client/{id}', name: 'app_get_client', methods: 'GET')]
+    public function getClient($id): JsonResponse
+    {
+        $clients= $this->clientRepository->findOneById($id);
+
+        $client = array();
+
+    
+            $client['id'] = $clients->getId();
+            $client['nom'] = $clients->getNom();
+            $client['clientId'] = $clients->getClientId();
+            $client['cin'] =$clients->getCin();
+            $client['address'] = $clients->getAddress();
+            $client['usedDevices'] = $clients->getUsedDevices();
+            $client['nombrePerson'] = $clients->getNombrePerson();
+            $client['uDevices'] = $clients->getUDevices();
+            $client['lastConsomation'] = '50';
+            
+    
 
         return $this->json($client);
     }

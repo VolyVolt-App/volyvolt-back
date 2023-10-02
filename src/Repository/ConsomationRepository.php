@@ -40,7 +40,18 @@ class ConsomationRepository extends ServiceEntityRepository
                 ;
     }
 
-//    /**
+    public function findLastConsomationByUser($id){
+
+    return $this->createQueryBuilder('c')
+    ->andWhere('c.clientId = :clientId')
+    ->setParameter('clientId',$id)
+    ->orderBy('c.date ', 'ASC')
+    ->setMaxResults(20)
+    ->getQuery()
+    ->getResult()
+;
+}
+//    /** findLastConsomationByUser
 //     * @return Consomation[] Returns an array of Consomation objects
 //     */
 //    public function findByExampleField($value): array

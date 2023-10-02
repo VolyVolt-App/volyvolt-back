@@ -188,7 +188,7 @@ class ConsomationController extends AbstractController
 
     }
 
-    #[Route('/getConsomationPredit/{id}', name: 'app_get_consomation_by_user')]
+    #[Route('/getConsomationPredit/{id}', name: 'app_get_consomation_predit_by_user')]
     public function getConsomationPreditbyUser($id): JsonResponse
     {
 
@@ -198,7 +198,7 @@ class ConsomationController extends AbstractController
 
         foreach ($consomationPredit as $key => $cPredit) {
             $consomation[$key] = $cPredit->getConsomation();
-            $labelConsomation[$key] = Carbon::instance($cPredit->getStartWeek())->locale('fr_FR')->isoFormat('MMM Do ').' - '.Carbon::instance($cPredit->getEndWeek())->locale('fr_FR')->isoFormat('MMM Do ');
+            $labelConsomation[$key] = Carbon::instance($cPredit->getStartWeek())->locale('fr_FR')->isoFormat('MMM Do ');//.' - '.Carbon::instance($cPredit->getEndWeek())->locale('fr_FR')->isoFormat('MMM Do ');
         }
 
 
@@ -219,7 +219,7 @@ class ConsomationController extends AbstractController
 
         foreach ($_consomationPredit as $key => $cPredit) {
             $consomationPredit[$key] = $cPredit->getConsomation();
-            $labelConsomation[$key] = Carbon::instance($cPredit->getStartWeek())->locale('fr_FR')->isoFormat('MMM Do ').' - '.Carbon::instance($cPredit->getEndWeek())->locale('fr_FR')->isoFormat('MMM Do ');
+            $labelConsomation[$key] = Carbon::instance($cPredit->getStartWeek())->locale('fr_FR')->isoFormat('MMM Do ');//.' - '.Carbon::instance($cPredit->getEndWeek())->locale('fr_FR')->isoFormat('MMM Do ');
             //dd($cPredit);
            // $_consomation = $this->consomation()
             $_consomation = $this->consomationRepository->findByConsomationPredit($cPredit);
@@ -230,11 +230,30 @@ class ConsomationController extends AbstractController
                 $dataConsomation = $dataConsomation+$cons->getConsomation();
                 $i++;
             }
-            dd($dataConsomation/$i);
+            $consomation[$key]=$dataConsomation/$i;
         }
 
 
         return $this->json(['consomationPredit'=>$consomationPredit,'consomation'=>$consomation, 'label'=>$labelConsomation]);
+    }
+
+    #[Route('/getConsomation/{id}', name: 'app_get_consomation_by_user')]
+    public function getConsomationbyUser($id): JsonResponse
+    {
+        $_consomation = $this->consomationRepository->findLastConsomationByUser($id);
+        //dd($consomation);
+
+        $consomation = array();
+
+        foreach ($_consomation as $key => $cons){
+            $consomation [$key]['id'] = $cons->getId();
+            $consomation[$key]['appareilId']= $cons->getAppareilId()->getAppareilId();
+            $consomation[$key]['consomation']= $cons->getConsomation();
+            $consomation[$key]['date']= Carbon::instance($cons->getDate())->locale('fr_FR')->isoFormat('lll');
+            //$consomation[$key]['']= $cons->get;
+
+        }
+        return $this->json($consomation);
     }
 
     #[Route('/consomationfromrasp', name: 'app_post_form_rasp')]
