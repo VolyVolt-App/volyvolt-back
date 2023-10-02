@@ -13,8 +13,8 @@ use Symfony\Component\HttpFoundation\Request;
 use App\Repository\ConsomationPreditRepository;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use GuzzleHttp\Client;
 
 class ConsomationController extends AbstractController
 {
@@ -25,13 +25,174 @@ class ConsomationController extends AbstractController
     private $em;
 
 
-    public function __construct(ClientRepository $clientRepository, AppareilRepository $appareilRepository,ConsomationPreditRepository $consomationPreditRepository,ConsomationRepository $consomationRepository , EntityManagerInterface $em)
+
+    public function __construct(ClientRepository $clientRepository, AppareilRepository $appareilRepository,ConsomationPreditRepository $consomationPreditRepository,ConsomationRepository $consomationRepository ,  EntityManagerInterface $em)
     {
        $this->clientRepository= $clientRepository;
        $this->appareilRepository= $appareilRepository;
        $this->consomationPreditRepository=$consomationPreditRepository;
        $this->consomationRepository=$consomationRepository;
        $this->em=$em;
+       
+    }
+
+    #[Route('/getPredictionToIA/{id}', name: 'app_get_prediction_to_IA')]
+    public function getPredictionToIA($id): JsonResponse
+    {
+
+        // Remplacez l'URL de l'API Symfony par votre URL réelle
+        $apiEndpoint = "https://uhhcqpx260.execute-api.us-east-1.amazonaws.com/xgbvolyvolt";
+
+        // Données à envoyer à l'API
+       /* $data = [
+            ["quarter" => 1, "month" => 1, "year" => 2023, "day_of_year" => 9],
+            ["quarter" => 1, "month" => 2, "year" => 2023, "day_of_year" => 44],
+            ["quarter" => 4, "month" => 10, "year" => 2023, "day_of_year" => 2],
+            ["quarter" => 4, "month" => 10, "year" => 2023, "day_of_year" => 9],
+            ["quarter" => 4, "month" => 10, "year" => 2023, "day_of_year" => 16],
+            ["quarter" => 4, "month" => 10, "year" => 2023, "day_of_year" => 23],
+            ["quarter" => 4, "month" => 10, "year" => 2023, "day_of_year" => 30],
+            ["quarter" => 4, "month" => 11, "year" => 2023, "day_of_year" => 6],
+            ["quarter" => 4, "month" => 11, "year" => 2023, "day_of_year" => 11],
+            ["quarter" => 4, "month" => 11, "year" => 2023, "day_of_year" => 18],
+            ["quarter" => 4, "month" => 11, "year" => 2023, "day_of_year" => 23],
+            ["quarter" => 4, "month" => 11, "year" => 2023, "day_of_year" => 30]
+        ];*/
+
+       /* $jsonData = '{"data": 
+            [
+                [1.0, 1.0, 2023,9], 
+                [1,2,2023,44], 
+                [4,10,2023,2], 
+                [4,10,2023,9],
+                [4, 10, 2023, 16],
+                [4, 10, 2023, 23], 
+                [4,10,2023, 30], 
+                [4,11, 2023,6], 
+                [4,11, 2023,11], 
+                [4,11, 2023,18], 
+                [4,11, 2023, 23], 
+                [4,11, 2023, 30]]}'
+                ;*/
+
+        $jsonData = '{"data": 
+            [
+                [4,10,2023,2], 
+                [4,10,2023,9],
+                [4, 10, 2023, 16],
+                [4, 10, 2023, 23], 
+                [4,10,2023, 30], 
+                [4,11, 2023,6], 
+                [4,11, 2023,11], 
+                [4,11, 2023,18], 
+                [4,11, 2023, 23], 
+                [4,11, 2023, 30]]}';
+
+        $phpArray = json_decode($jsonData, true);
+
+        // If you want to access the 'data' key specifically
+        $dataArray = $phpArray['data'];
+
+        //dump($dataArray);
+
+        // Création du client Guzzle
+        $client = new Client();
+
+        // Envoi de la requête POST à l'API Symfony
+        $response = $client->post($apiEndpoint, [
+            'json' => ['data' => $dataArray]
+        ]);
+
+        // Récupération du contenu de la réponse
+        $responseData = $response->getBody()->getContents();
+        //ltrim($responseData, '[');
+
+        //processing data
+        $dataPredit = ltrim($responseData, '['); 
+        $dataPredit= rtrim($dataPredit, ']');
+
+        //dd($dataPredit);
+
+        $arrayPredit= explode(',',$dataPredit);
+        //dd($arrayPredit);
+        $phpArray=$phpArray['data'];
+        $dataConsoString = array();
+
+        foreach ($arrayPredit as $key=>$predit){
+            $consomationPredit= new ConsomationPredit();
+
+            //START
+
+            $year = $phpArray[$key][2];
+            $month = $phpArray[$key][1];
+            $day = $phpArray[$key][3];
+
+            //dump($arrayPredit[$key]);
+            //processing data
+            if($key == 0){
+                
+            $dataConsoString[$key]=substr($predit,1,7);
+            } else {
+                
+            $dataConsoString[$key]=substr($predit,2,8);
+            }
+            //$dataConsoString=rtrim('"',$dataConsoString);
+
+            //dump($dataConsoString);
+
+            $consoPreditString = (float) $dataConsoString[$key];
+
+            //dd($consoPreditString);
+
+            $consomationPredit->setConsomation($consoPreditString);
+
+            //$startWeek= $now->startOfWeek();
+            //$endWeek=$now->endOfWeek();
+            //$date=Carbon::createFromDate(2023,9,30,'Europe/Berlin');
+            $date=Carbon::create($year, $month, $day, 0, 0, 0);
+            
+            $consomationPredit->setStartWeek($date->startOfWeek());
+            $consomationPredit->setConsomationReel(false);
+
+            //tsy maints atao anatin io fa misy conflit start sy ny end
+            $startWeek=$date->startOfWeek()->toDateTimeString();
+            
+            
+
+            $consomationPredit->setStartWeek(new \DateTime($startWeek));
+            $consomationPredit->setEndWeek($date->endOfWeek());
+
+
+
+            $client= $this->clientRepository->findOneById($id);
+            //dd($client);
+            $consomationPredit->setClient($client);
+
+            //dd($date->endOfWeek(Carbon::SUNDAY));
+            //dd($consomationPredit);
+
+            //dd($consomationPredit);
+            $this->em->getConnection()->beginTransaction();
+            try {
+
+                $this->em->persist($consomationPredit);
+
+                $this->em->flush();
+                $this->em->commit();
+
+            } catch (\Exception $e) {
+
+                $this->em->rollback();
+                throw $e;
+            }
+
+        }
+        //dd($arrayPredit);
+        dd($dataConsoString);
+        
+        // Vous pouvez retourner la réponse si nécessaire
+        return new JsonResponse(['response' => 'ok']);
+
     }
 
     #[Route('/consomation', name: 'app_consomation')]
