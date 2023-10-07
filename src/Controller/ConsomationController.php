@@ -207,9 +207,19 @@ class ConsomationController extends AbstractController
 
        // $client = $this->clientRepository->findOneBy
         $client= $this->clientRepository->findOneById($request->request->get('clientId'));
+
+        if(!$client){
+            return $this->json(['error'=>'pas de client pour le consomation'], 403 );
+        }
+
         $consomation->setClientId($client);
 
         $appareil=$this->appareilRepository->findOneById($request->request->get('appareilId'));
+
+        if(!$appareil){
+            return $this->json(['error'=>'pas de appareil pour le consomation'], 403 );
+        }
+
         $consomation->setAppareilId($appareil);
 
         //dd($consomation);
@@ -225,6 +235,7 @@ class ConsomationController extends AbstractController
         } catch (\Exception $e) {
 
             $this->em->rollback();
+            return $this->json(['error' => "couldn't register the consomation in bdd"],500);
             throw $e;
         }
 
@@ -252,6 +263,10 @@ class ConsomationController extends AbstractController
 
        // $client = $this->clientRepository->findOneBy
         $client= $this->clientRepository->findOneById($request->request->get('clientId'));
+        if(!$client){
+            return $this->json(['error'=>'pas de client pour le consomation'], 403 );
+        }
+
         $consomation->setClientId($client);
 
         $consomationPredit = $this->consomationPreditRepository->findOneBy([
@@ -259,11 +274,20 @@ class ConsomationController extends AbstractController
             'startWeek' => $date->startOfWeek(),
         ]);
 
+        if(!$consomationPredit){
+            return $this->json(['error'=>"couldn't find the consomation predit for the current consomation"], 403 );
+        }
+
         //dd($consomationPredit);
         $consomationPredit->setConsomationReel(true);
         $consomation->setConsomationPredit($consomationPredit);
 
         $appareil=$this->appareilRepository->findOneById($request->request->get('appareilId'));
+
+        if(!$appareil){
+            return $this->json(['error'=>'pas de appareil pour le consomation'], 403 );
+        }
+
         $consomation->setAppareilId($appareil);
 
         //dd($consomation);
@@ -280,6 +304,8 @@ class ConsomationController extends AbstractController
         } catch (\Exception $e) {
 
             $this->em->rollback();
+            return $this->json(['error' => "couldn't register the consomation in bdd"],500);
+
             throw $e;
         }
 
@@ -339,6 +365,8 @@ class ConsomationController extends AbstractController
         } catch (\Exception $e) {
 
             $this->em->rollback();
+            return $this->json(['error' => "couldn't register the consomationPredit in bdd"],500);
+
             throw $e;
         }
         
@@ -372,6 +400,11 @@ class ConsomationController extends AbstractController
         //$client = $this->clientRepository->findOneById($id);
 
         $_consomationPredit=$this->consomationPreditRepository->findConsomationPredictedByClient($id,true);
+
+       /* if(!$_consomationPredit){
+            return $this->json(['error'=> "couldn't find any consomation predit"],403);
+        }*/
+
         $consomationPredit = array();
         $labelConsomation = array();
         $consomation = array();
@@ -423,9 +456,12 @@ class ConsomationController extends AbstractController
                 //set VersoPhotoCIN
                 $file = $request->files->get('file');
                 //dd($file);
-                $filename = md5(uniqid()) . '.' . $file->guessClientExtension();
+
+                $filename = md5(uniqid()) . '.' . 'txt';//$file->guessClientExtension();
                 $path = $this->getParameter('kernel.project_dir') . '/public/consomation';
                 $file->move($path, $filename);
+                
+                //return $this->json($filename);
 
                 $data = array();
                // $dataSingle = array();
@@ -450,35 +486,60 @@ class ConsomationController extends AbstractController
                     $i=$i+1;
                     }
                 fclose($fh);
-
+                
+               // return $this->json(count($data));
                // dump($data);
 
                 $dataClient = explode(';',$data[0]);
-
                // dd($dataClient);
                 //getclientID
-                $client = $this->clientRepository->findOneByClientId($dataClient);
+                $client = $this->clientRepository->findOneByClientId($dataClient[0]);
                   //  dd($client);
+
+                if(!$client){
+                    return $this->json(['error'=>"couldn't find client by id".$dataClient[0]],401);
+                }
+                
+            
                 //getAppareilID
                 $dataAppareil= explode(';',$data[2]); 
+                
+                
                 $appareil = $this->appareilRepository->findOneByAppareilId($dataAppareil[0]);
                // dd($appareil);
                 //send two
-
+                if(!$appareil){
+                    return $this->json(['error'=>"couldn't find appareil by id ".$dataAppareil[0]]);
+                }
     //new consomation
 
-                for ($i=6; $i<13; $i++){
+                for ($i=count($data)-10; $i<count($data); $i=$i+2){
 
-                
+                //return $this->json('mety');
+
                 $dataConsomation= explode(';',$data[2]);
+
+                //return $this->json($dataConsomation);
+
                 $date=$dataConsomation[4];
                 $hm=$dataConsomation[3];
 
                 $Uvolt=$dataConsomation[1];
                 $Iampere = $dataConsomation[2];
+                
+                try{  
+                $datetime=Carbon::createFromFormat('Y:m:d H:i', $date.' '.$hm); 
+                } catch (\Exception $e)
+                {
+                    
+                return $this->json([
+                    'error'=>"couldn't create date from".$date.' '.$hm,
+                    'error message' => $e->getMessage()
+                ],401);
 
-                $datetime=Carbon::createFromFormat('Y:m:d H:i', $date.' '.$hm);
-
+                }
+                //$datetime=Carbon::createFromFormat('Y:m:d H:i', $date.' '.$hm);
+                
                 // add first data consomation
                 $consomation = new Consomation();
                 
@@ -504,16 +565,19 @@ class ConsomationController extends AbstractController
                     $consomation->setConsomationPredit($consomationPredit);
                  }
 
+                // return $this->json('mety');
+
                  $this->em->getConnection()->beginTransaction();
                 try {
 
-                    $this->em->persist($consomationPredit);
+                    $this->em->persist($consomation);
 
                     $this->em->flush();
                     $this->em->commit();
 
                 } catch (\Exception $e) {
 
+                    return $this->json(['error'=> "couldn't register consomation into bdd", 'error message'=> $e->getMessage()]);
                     $this->em->rollback();
                     throw $e;
                 }

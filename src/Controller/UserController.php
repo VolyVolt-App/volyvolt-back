@@ -156,7 +156,6 @@ class UserController extends AbstractController
         try {
 
             $this->em->persist($appareil);
-
             $this->em->flush();
             $this->em->commit();
 
