@@ -14,6 +14,7 @@ class HomeController extends AbstractController
 {
 
     private $algo;
+    private $em;
     
     public function __construct(Algo $algo,EntityManagerInterface $em)
     {
@@ -38,6 +39,7 @@ class HomeController extends AbstractController
         return $this->json([
             'message' => 'pong',
         ]);
+    }
 
     #[Route('/message', name: 'app_message')]
     public function message(Request $request): JsonResponse
