@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Controller;
+use App\Service\Algo;
 
 use App\Entity\Message;
 use Doctrine\ORM\EntityManagerInterface;
@@ -11,12 +12,16 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class HomeController extends AbstractController
 {
-    private $em;
 
-    public function __construct(EntityManagerInterface $em)
+    private $algo;
+    
+    public function __construct(Algo $algo,EntityManagerInterface $em)
     {
+        $this->algo = $algo;
         $this->em=$em;
     }
+
+
     #[Route('/ping', name: 'app_home')]
     public function index(): JsonResponse
     {
@@ -24,6 +29,15 @@ class HomeController extends AbstractController
             'message' => 'pong',
         ]);
     }
+
+    #[Route('/algo', name: 'app_algo')]
+    public function algo(): JsonResponse
+    {
+        $feno=$this->algo->add(56);
+        dd($feno);
+        return $this->json([
+            'message' => 'pong',
+        ]);
 
     #[Route('/message', name: 'app_message')]
     public function message(Request $request): JsonResponse
@@ -56,5 +70,6 @@ class HomeController extends AbstractController
         }
 
         return $this->json(['message'=>'ok']);
+
     }
 }
