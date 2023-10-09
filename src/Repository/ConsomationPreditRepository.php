@@ -21,6 +21,51 @@ class ConsomationPreditRepository extends ServiceEntityRepository
         parent::__construct($registry, ConsomationPredit::class);
     }
 
+    public function findConsomationPredictedByClient(int $id, bool $isConsomationReel): array
+    {
+        return $this->createQueryBuilder('c')
+            ->where('c.consomationReel = :isConsomationReel')
+            ->andWhere('c.client = :clientId')
+            ->setParameters(
+                    [
+                    'clientId' => $id,
+                    'isConsomationReel' => $isConsomationReel
+                    ]
+                )
+            ->orderBy('c.startWeek', 'ASC')
+            ->setMaxResults(7)
+            ->getQuery()
+            ->getResult()
+        ;
+
+       /* $qb=$this->createQueryBuilder('c');
+         $qb->where(
+            $qb->expr()->andX(
+                $qb->expr()->eq('c.client', ':clientId'),
+                $qb->expr()->eq('c.consomationReel', 'false'),
+                //$qb->expr()->between('c.date',':startWeek',':endWeek'),
+                ))
+                ->setParameter('clientId',$id);
+                ->setParameters(
+                    [
+                    'clientId' => $id,
+                    'isConsomationReel' => $isConsomationReel
+                    ]
+                );
+        return $qb->getQuery()
+                    ->getResult()
+                ;*/
+    }
+
+/*
+->where(
+                $qb->expr()->andX(
+                    $qb->expr()->eq('c.users', ':user'),
+                    $qb->expr()->eq('c.cashoutSuccessed','true'),
+                ))
+
+*/
+
 //    /**
 //     * @return ConsomationPredit[] Returns an array of ConsomationPredit objects
 //     */

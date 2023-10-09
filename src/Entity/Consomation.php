@@ -28,6 +28,9 @@ class Consomation
     #[ORM\Column]
     private ?float $consomation = null;
 
+    #[ORM\ManyToOne(inversedBy: 'consomations')]
+    private ?ConsomationPredit $consomationPredit = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -77,6 +80,18 @@ class Consomation
     public function setConsomation(float $consomation): static
     {
         $this->consomation = $consomation;
+
+        return $this;
+    }
+
+    public function getConsomationPredit(): ?ConsomationPredit
+    {
+        return $this->consomationPredit;
+    }
+
+    public function setConsomationPredit(?ConsomationPredit $consomationPredit): static
+    {
+        $this->consomationPredit = $consomationPredit;
 
         return $this;
     }
