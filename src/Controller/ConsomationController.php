@@ -107,6 +107,10 @@ class ConsomationController extends AbstractController
         $responseData = $response->getBody()->getContents();
         //ltrim($responseData, '[');
 
+        if(!$responseData){
+            return $this->json(['error'=>'pas de reponse venant du serveur de l,IA'],500);
+        }
+
         //processing data
         $dataPredit = ltrim($responseData, '['); 
         $dataPredit= rtrim($dataPredit, ']');
@@ -165,6 +169,11 @@ class ConsomationController extends AbstractController
 
 
             $client= $this->clientRepository->findOneById($id);
+
+            if(!$client){
+                return $this->json(['error' => "couldn't find the client by id = ".$id ],403);
+            }
+            
             //dd($client);
             $consomationPredit->setClient($client);
 
@@ -195,7 +204,7 @@ class ConsomationController extends AbstractController
 
     }
 
-    #[Route('/consomation', name: 'app_consomation')]
+    #[Route('/consomation', name: 'app_consomation', methods:'POST')]
     public function consomation(Request $request): JsonResponse
     {
         //consomation clientId appareilId
@@ -252,7 +261,7 @@ class ConsomationController extends AbstractController
 
         $consomation= new Consomation();
 
-        $year = $request->request->get('year');
+        $year = $request->request->get('years');
         $month = $request->request->get('month');
         $day = $request->request->get('day');
 
@@ -279,9 +288,11 @@ class ConsomationController extends AbstractController
         }
 
         //dd($consomationPredit);
-        $consomationPredit->setConsomationReel(true);
-        $consomation->setConsomationPredit($consomationPredit);
 
+        if ($consomationPredit){
+            $consomationPredit->setConsomationReel(true);
+            $consomation->setConsomationPredit($consomationPredit);    
+        }
         $appareil=$this->appareilRepository->findOneById($request->request->get('appareilId'));
 
         if(!$appareil){
@@ -296,7 +307,10 @@ class ConsomationController extends AbstractController
         try {
 
             $this->em->persist($consomation);
-            $this->em->persist($consomationPredit);
+
+            if($consomationPredit){
+                $this->em->persist($consomationPredit);
+            }
 
             $this->em->flush();
             $this->em->commit();
@@ -347,6 +361,10 @@ class ConsomationController extends AbstractController
 
 
         $client= $this->clientRepository->findOneById($request->request->get('clientId'));
+        
+        if(!$client){
+            return $this->json(['error'=>"could't find client by id = ".$request->request->get('clientId')],403);
+        }
         //dd($client);
         $consomationPredit->setClient($client);
 
@@ -450,11 +468,15 @@ class ConsomationController extends AbstractController
         return $this->json($consomation);
     }
 
-    #[Route('/consomationfromrasp', name: 'app_post_form_rasp')]
+    #[Route('/consomationfromrasp', name: 'app_post_form_rasp', methods:'POST')]
     public function getConsomationfromrasp(Request $request): JsonResponse
     {
                 //set VersoPhotoCIN
                 $file = $request->files->get('file');
+
+                if(!$file){
+                    return $this->json(['error'=> 'there is any file sent'],403);
+                }
                 //dd($file);
 
                 $filename = md5(uniqid()) . '.' . 'txt';//$file->guessClientExtension();
@@ -560,6 +582,11 @@ class ConsomationController extends AbstractController
                      'startWeek' => $datetime->startOfWeek(),
                  ]);
 
+                 
+                 if(!$consomationPredit){
+                    return $this->json(['error'=>"couldn't find the the consomation predict"],500);
+                 }
+                 
                  if($consomationPredit){
                     $consomationPredit->setConsomationReel(true);
                     $consomation->setConsomationPredit($consomationPredit);
@@ -571,6 +598,10 @@ class ConsomationController extends AbstractController
                 try {
 
                     $this->em->persist($consomation);
+                 
+                    if($consomationPredit){
+                        $this->em->persist($consomationPredit);
+                    }
 
                     $this->em->flush();
                     $this->em->commit();

@@ -171,7 +171,7 @@ class UserController extends AbstractController
         ]);
     }
 
-    #[Route('/allappareil', name: 'app_all_app', methods: 'POST')]
+    #[Route('/allappareil', name: 'app_all_app', methods: 'GET')]
     public function getAllAppareil(Request $request): JsonResponse
     {
         $_appareil= $this->appareilRepository->findAll();
